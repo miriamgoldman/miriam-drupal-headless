@@ -10,21 +10,36 @@ export const metadata: Metadata = {
 export const revalidate = 60
 
 export default async function Home() {
-  const nodes = await drupal.getResourceCollection<DrupalNode[]>(
-    "node--article",
-    {
-      params: {
-        "filter[status]": 1,
-        "fields[node--article]": "title,path,field_image,uid,created",
-        include: "field_image,uid",
-        sort: "-created",
-      },
+  let nodes
+  let error = null
+
+  try {
+    nodes = await drupal.getResourceCollection<DrupalNode[]>(
+      "node--article",
+      {
+        params: {
+          "filter[status]": 1,
+          sort: "-created",
+        },
+      }
+    )
+    console.log("Fetched nodes:", nodes?.length || 0, "articles")
+    if (nodes?.length) {
+      console.log("First article:", nodes[0].title)
     }
-  )
+  } catch (e) {
+    error = e
+    console.error("Error fetching articles:", e)
+  }
 
   return (
     <>
       <h1 className="mb-10 text-6xl font-black">Latest Articles.</h1>
+      {error && (
+        <div className="py-4 text-red-600">
+          <p>Error loading articles: {String(error)}</p>
+        </div>
+      )}
       {nodes?.length ? (
         nodes.map((node) => (
           <div key={node.id}>
@@ -33,7 +48,7 @@ export default async function Home() {
           </div>
         ))
       ) : (
-        <p className="py-4">No nodes found</p>
+        <p className="py-4">No nodes found (checked {nodes?.length ?? 'null'} results)</p>
       )}
     </>
   )
