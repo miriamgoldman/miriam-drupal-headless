@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: "A Next.js site powered by a Drupal backend.",
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function Home() {
   const nodes = await drupal.getResourceCollection<DrupalNode[]>(
     "node--article",
