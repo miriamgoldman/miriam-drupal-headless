@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 export const revalidate = 60
 
 export default async function Home() {
-  let nodes
-  let error = null
+  let nodes: DrupalNode[] | null = null
+  let error: unknown = null
 
   try {
     nodes = await drupal.getResourceCollection<DrupalNode[]>(
