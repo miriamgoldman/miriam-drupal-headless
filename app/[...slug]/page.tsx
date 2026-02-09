@@ -86,6 +86,8 @@ export async function generateMetadata(
 
 const RESOURCE_TYPES = ["node--page", "node--article"]
 
+export const dynamic = 'force-dynamic'
+
 export async function generateStaticParams(): Promise<NodePageParams[]> {
   const resources = await drupal.getResourceCollectionPathSegments(
     RESOURCE_TYPES,

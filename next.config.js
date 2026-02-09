@@ -2,14 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    remotePatterns: [
+    remotePatterns: process.env.NEXT_IMAGE_DOMAIN ? [
       {
-        // protocol: 'https',
+        protocol: 'https',
         hostname: process.env.NEXT_IMAGE_DOMAIN,
-        // port: '',
-        // pathname: '/sites/default/files/**',
+        pathname: '/sites/default/files/**',
       },
-    ],
+    ] : [],
   },
 }
 

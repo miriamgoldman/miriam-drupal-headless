@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:next-drupal.org)",
+      "WebFetch(domain:live-miriam-drupal.pantheonsite.io)"
+    ]
+  }
+}
