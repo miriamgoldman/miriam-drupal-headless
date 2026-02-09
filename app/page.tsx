@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: "A Next.js site powered by a Drupal backend.",
 }
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export default async function Home() {
   const nodes = await drupal.getResourceCollection<DrupalNode[]>(
@@ -18,9 +18,6 @@ export default async function Home() {
         "fields[node--article]": "title,path,field_image,uid,created",
         include: "field_image,uid",
         sort: "-created",
-      },
-      next: {
-        revalidate: 3600,
       },
     }
   )

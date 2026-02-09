@@ -1,6 +1,4 @@
-import { draftMode } from "next/headers"
 import { notFound } from "next/navigation"
-import { getDraftData } from "next-drupal/draft"
 import { Article } from "@/components/drupal/Article"
 import { BasicPage } from "@/components/drupal/BasicPage"
 import { drupal } from "@/lib/drupal"
@@ -11,12 +9,6 @@ async function getNode(slug: string[]) {
   const path = `/${slug.join("/")}`
 
   const params: JsonApiParams = {}
-
-  const draftData = await getDraftData()
-
-  if (draftData.path === path) {
-    params.resourceVersion = draftData.resourceVersion
-  }
 
   // Translating the path also allows us to discover the entity type.
   const translatedPath = await drupal.translatePath(path)
@@ -35,12 +27,6 @@ async function getNode(slug: string[]) {
 
   const resource = await drupal.getResource<DrupalNode>(type, uuid, {
     params,
-    cache: "force-cache",
-    next: {
-      revalidate: 3600,
-      // Replace `revalidate` with `tags` if using tag based revalidation.
-      // tags: [tag],
-    },
   })
 
   if (!resource) {
@@ -86,7 +72,7 @@ export async function generateMetadata(
 
 const RESOURCE_TYPES = ["node--page", "node--article"]
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export async function generateStaticParams(): Promise<NodePageParams[]> {
   const resources = await drupal.getResourceCollectionPathSegments(
@@ -119,9 +105,6 @@ export default async function NodePage(props: NodePageProps) {
 
   const { slug } = params
 
-  const draft = await draftMode()
-  const isDraftMode = draft.isEnabled
-
   let node
   try {
     node = await getNode(slug)
@@ -130,8 +113,8 @@ export default async function NodePage(props: NodePageProps) {
     notFound()
   }
 
-  // If we're not in draft mode and the resource is not published, return a 404.
-  if (!isDraftMode && node?.status === false) {
+  // If the resource is not published, return a 404.
+  if (node?.status === false) {
     notFound()
   }
 
