@@ -25,7 +25,7 @@ const getArticles = unstable_cache(
   },
   ["homepage-articles"],
   {
-    tags: ["node--article", "article-listing"],
+    tags: ["node_list:article", "node--article"],
     revalidate: 60,
   }
 )
