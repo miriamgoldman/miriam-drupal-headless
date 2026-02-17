@@ -7,7 +7,13 @@ const __dirname = dirname(__filename);
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Legacy cache handler for ISR and fetch cache
   cacheHandler: resolve(__dirname, 'cacheHandler.ts'),
+  // Next.js 16 'use cache' directive handler (with edge cache clearing)
+  cacheHandlers: {
+    default: resolve(__dirname, 'useCacheHandler.ts'),
+  },
+  cacheComponents: true, // Enable 'use cache' directive
   cacheMaxMemorySize: 0, // Disable default in-memory caching
   images: {
     remotePatterns: process.env.NEXT_IMAGE_DOMAIN ? [
