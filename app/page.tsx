@@ -18,6 +18,7 @@ const getArticles = unstable_cache(
         params: {
           "filter[status]": 1,
           sort: "-created",
+          include: "field_image,uid",
         },
       }
     )
