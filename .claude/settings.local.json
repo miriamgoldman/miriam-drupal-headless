@@ -19,7 +19,8 @@
       "Bash(npx @next/codemod@canary migrate-to-async-dynamic-apis:*)",
       "Bash(npx @next/codemod@canary next-async-request-api:*)",
       "Bash(npx:*)",
-      "Bash(timeout 10 npm run dev:*)"
+      "Bash(timeout 10 npm run dev:*)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

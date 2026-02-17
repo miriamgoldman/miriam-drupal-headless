@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { cacheTag, cacheLife } from "next/cache"
+import { unstable_cache } from "next/cache"
 import { Article } from "@/components/drupal/Article"
 import { BasicPage } from "@/components/drupal/BasicPage"
 import { drupal } from "@/lib/drupal"
@@ -7,9 +7,6 @@ import type { Metadata, ResolvingMetadata } from "next"
 import type { DrupalNode, JsonApiParams } from "next-drupal"
 
 async function getNode(slug: string[]) {
-  'use cache'
-  cacheLife('minutes') // 1 minute revalidation
-
   const path = `/${slug.join("/")}`
   const params: JsonApiParams = {}
 
@@ -28,23 +25,32 @@ async function getNode(slug: string[]) {
     params.include = "field_image,uid"
   }
 
-  // Cache tags for granular revalidation
-  cacheTag(entityCacheTag, type, `node:${uuid}`)
+  // Use unstable_cache - 'use cache' causes 60s timeouts during static generation
+  const getCachedResource = unstable_cache(
+    async () => {
+      const resource = await drupal.getResource<DrupalNode>(type, uuid, {
+        params,
+      })
 
-  const resource = await drupal.getResource<DrupalNode>(type, uuid, {
-    params,
-  })
-
-  if (!resource) {
-    throw new Error(
-      `Failed to fetch resource: ${type}/${uuid}`,
-      {
-        cause: "DrupalError",
+      if (!resource) {
+        throw new Error(
+          `Failed to fetch resource: ${type}/${uuid}`,
+          {
+            cause: "DrupalError",
+          }
+        )
       }
-    )
-  }
 
-  return resource
+      return resource
+    },
+    [`node-${uuid}`],
+    {
+      tags: [entityCacheTag, type, `node:${uuid}`],
+      revalidate: 60,
+    }
+  )
+
+  return getCachedResource()
 }
 
 type NodePageParams = {
@@ -77,6 +83,8 @@ export async function generateMetadata(
 }
 
 const RESOURCE_TYPES = ["node--page", "node--article"]
+
+export const revalidate = 60
 
 export async function generateStaticParams(): Promise<NodePageParams[]> {
   const resources = await drupal.getResourceCollectionPathSegments(

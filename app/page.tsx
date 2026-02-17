@@ -1,4 +1,4 @@
-import { cacheTag, cacheLife } from "next/cache"
+import { unstable_cache } from "next/cache"
 import { ArticleTeaser } from "@/components/drupal/ArticleTeaser"
 import { drupal } from "@/lib/drupal"
 import type { Metadata } from "next"
@@ -8,22 +8,27 @@ export const metadata: Metadata = {
   description: "A Next.js site powered by a Drupal backend.",
 }
 
-async function getArticles() {
-  'use cache'
-  cacheLife('minutes') // 1 minute revalidation
-  cacheTag('node_list:article', 'node--article')
+export const revalidate = 60
 
-  return await drupal.getResourceCollection<DrupalNode[]>(
-    "node--article",
-    {
-      params: {
-        "filter[status]": 1,
-        sort: "-created",
-        include: "field_image,uid",
-      },
-    }
-  )
-}
+const getArticles = unstable_cache(
+  async () => {
+    return await drupal.getResourceCollection<DrupalNode[]>(
+      "node--article",
+      {
+        params: {
+          "filter[status]": 1,
+          sort: "-created",
+          include: "field_image,uid",
+        },
+      }
+    )
+  },
+  ["homepage-articles"],
+  {
+    tags: ["node_list:article", "node--article"],
+    revalidate: 60,
+  }
+)
 
 export default async function Home() {
   const nodes = await getArticles()

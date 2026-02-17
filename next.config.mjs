@@ -13,7 +13,7 @@ const nextConfig = {
   cacheHandlers: {
     default: resolve(__dirname, 'useCacheHandler.ts'),
   },
-  cacheComponents: true, // Enable 'use cache' directive
+  // cacheComponents: true, // DISABLED: Causes 60s timeouts with 'use cache' during static generation
   cacheMaxMemorySize: 0, // Disable default in-memory caching
   images: {
     remotePatterns: process.env.NEXT_IMAGE_DOMAIN ? [
