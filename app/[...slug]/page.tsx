@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { unstable_cache } from "next/cache"
 import { Article } from "@/components/drupal/Article"
 import { BasicPage } from "@/components/drupal/BasicPage"
 import { drupal } from "@/lib/drupal"
@@ -19,26 +20,38 @@ async function getNode(slug: string[]) {
 
   const type = translatedPath.jsonapi?.resourceName!
   const uuid = translatedPath.entity.uuid
-  const tag = `${translatedPath.entity.type}:${translatedPath.entity.id}`
+  const cacheTag = `${translatedPath.entity.type}:${translatedPath.entity.id}`
 
   if (type === "node--article") {
     params.include = "field_image,uid"
   }
 
-  const resource = await drupal.getResource<DrupalNode>(type, uuid, {
-    params,
-  })
+  // Use unstable_cache to cache the resource with tags for granular revalidation
+  const getCachedResource = unstable_cache(
+    async () => {
+      const resource = await drupal.getResource<DrupalNode>(type, uuid, {
+        params,
+      })
 
-  if (!resource) {
-    throw new Error(
-      `Failed to fetch resource: ${translatedPath?.jsonapi?.individual}`,
-      {
-        cause: "DrupalError",
+      if (!resource) {
+        throw new Error(
+          `Failed to fetch resource: ${translatedPath?.jsonapi?.individual}`,
+          {
+            cause: "DrupalError",
+          }
+        )
       }
-    )
-  }
 
-  return resource
+      return resource
+    },
+    [`node-${uuid}`],
+    {
+      tags: [cacheTag, type, `node:${uuid}`],
+      revalidate: 60,
+    }
+  )
+
+  return getCachedResource()
 }
 
 type NodePageParams = {

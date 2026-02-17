@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache"
 import { ArticleTeaser } from "@/components/drupal/ArticleTeaser"
 import { drupal } from "@/lib/drupal"
 import type { Metadata } from "next"
@@ -9,16 +10,27 @@ export const metadata: Metadata = {
 
 export const revalidate = 60
 
+const getArticles = unstable_cache(
+  async () => {
+    return await drupal.getResourceCollection<DrupalNode[]>(
+      "node--article",
+      {
+        params: {
+          "filter[status]": 1,
+          sort: "-created",
+        },
+      }
+    )
+  },
+  ["homepage-articles"],
+  {
+    tags: ["node--article", "article-listing"],
+    revalidate: 60,
+  }
+)
+
 export default async function Home() {
-  const nodes = await drupal.getResourceCollection<DrupalNode[]>(
-    "node--article",
-    {
-      params: {
-        "filter[status]": 1,
-        sort: "-created",
-      },
-    }
-  )
+  const nodes = await getArticles()
 
   return (
     <>
