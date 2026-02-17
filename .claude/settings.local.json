@@ -11,7 +11,15 @@
       "Bash(ls:*)",
       "Bash(NEXT_PUBLIC_DRUPAL_BASE_URL=https://example.com npm run build:*)",
       "WebSearch",
-      "WebFetch(domain:www.drupal.org)"
+      "WebFetch(domain:www.drupal.org)",
+      "Bash(chmod:*)",
+      "Bash(/Users/miriamgoldman/Documents/drupal-next-diagnostic.sh)",
+      "Bash(terminus drush:*)",
+      "Bash(npm --version)",
+      "Bash(npx @next/codemod@canary migrate-to-async-dynamic-apis:*)",
+      "Bash(npx @next/codemod@canary next-async-request-api:*)",
+      "Bash(npx:*)",
+      "Bash(timeout 10 npm run dev:*)"
     ]
   }
 }

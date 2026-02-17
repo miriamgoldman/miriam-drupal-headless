@@ -18,8 +18,17 @@ async function handler(request: NextRequest) {
   }
 
   try {
-    path && revalidatePath(path)
-    tags?.split(",").forEach((tag) => revalidateTag(tag))
+    if (path) {
+      revalidatePath(path)
+    }
+
+    if (tags) {
+      tags.split(",").forEach((tag) => {
+        // Next.js 16: revalidateTag takes optional second parameter for cacheLife profile
+        // 'default' provides stale-while-revalidate behavior
+        revalidateTag(tag, 'default')
+      })
+    }
 
     return new Response("Revalidated.")
   } catch (error) {
