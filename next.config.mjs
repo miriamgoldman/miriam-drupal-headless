@@ -1,14 +1,23 @@
-import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+// next.config.mjs
+import path from "path";
+import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  cacheHandler: resolve(__dirname, 'cacheHandler.ts'),
-  cacheMaxMemorySize: 0, // Disable default in-memory caching
+
+  // Traditional cache handler (ISR, routes, fetch cache)
+  cacheHandler: path.resolve(__dirname, "./cache-handler.mjs"),
+
+  // Next.js 16 'use cache' directive handler
+  cacheHandlers: {
+    default: path.resolve(__dirname, "./use-cache-handler.mjs"),
+  },
+
+  cacheMaxMemorySize: 0, // Disable in-memory caching to use custom handler
+
   images: {
     remotePatterns: process.env.NEXT_IMAGE_DOMAIN ? [
       {
@@ -18,6 +27,6 @@ const nextConfig = {
       },
     ] : [],
   },
-}
+};
 
 export default nextConfig;

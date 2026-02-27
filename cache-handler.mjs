@@ -1,3 +1,4 @@
+// cache-handler.mjs
 import { createCacheHandler } from '@pantheon-systems/nextjs-cache-handler';
 
 const CacheHandler = createCacheHandler({
