@@ -11,7 +11,9 @@
       "Bash(ls:*)",
       "Bash(NEXT_PUBLIC_DRUPAL_BASE_URL=https://example.com npm run build:*)",
       "WebSearch",
-      "WebFetch(domain:www.drupal.org)"
+      "WebFetch(domain:www.drupal.org)",
+      "Bash(npm view:*)",
+      "Bash(git log:*)"
     ]
   }
 }
