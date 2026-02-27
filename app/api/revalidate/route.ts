@@ -21,6 +21,11 @@ async function handler(request: NextRequest) {
     path && revalidatePath(path)
     tags?.split(",").forEach((tag) => revalidateTag(tag, 'max'))
 
+    // If article tags are revalidated, also clear the homepage route cache
+    if (tags?.includes("node_list:article") || tags?.includes("node--article")) {
+      revalidatePath("/")
+    }
+
     return new Response("Revalidated.")
   } catch (error) {
     return new Response((error as Error).message, { status: 500 })
