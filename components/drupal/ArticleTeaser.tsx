@@ -32,7 +32,7 @@ export function ArticleTeaser({ node, ...props }: ArticleTeaserProps) {
           />
         </figure>
       )}
-      {node.body?.summary ? (
+      {node.body?.summary && node.body.summary.trim() !== "" ? (
         <div
           dangerouslySetInnerHTML={{ __html: node.body.summary }}
           className="my-4 prose prose-lg"
