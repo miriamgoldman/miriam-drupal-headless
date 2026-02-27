@@ -47,7 +47,7 @@ async function getNode(slug: string[]) {
     [`node-${uuid}`],
     {
       tags: [cacheTag, type, `node:${uuid}`],
-      revalidate: false, // Rely on webhook-based revalidation
+      revalidate: 60,
     }
   )
 
@@ -85,8 +85,7 @@ export async function generateMetadata(
 
 const RESOURCE_TYPES = ["node--page", "node--article"]
 
-// Rely on on-demand revalidation via Drupal webhooks instead of time-based ISR
-export const revalidate = false
+export const revalidate = 60
 
 export async function generateStaticParams(): Promise<NodePageParams[]> {
   const resources = await drupal.getResourceCollectionPathSegments(
