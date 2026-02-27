@@ -8,7 +8,8 @@ export const metadata: Metadata = {
   description: "A Next.js site powered by a Drupal backend.",
 }
 
-export const revalidate = 60
+// Rely on on-demand revalidation via Drupal webhooks instead of time-based ISR
+export const revalidate = false
 
 const getArticles = unstable_cache(
   async () => {
@@ -26,7 +27,7 @@ const getArticles = unstable_cache(
   ["homepage-articles"],
   {
     tags: ["node_list:article", "node--article"],
-    revalidate: 60,
+    revalidate: false, // Rely on webhook-based revalidation
   }
 )
 
