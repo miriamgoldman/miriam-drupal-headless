@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 async function getArticles() {
   "use cache"
   cacheTag("node_list:article", "node--article")
-  cacheLife("max")
+  cacheLife({ stale: 60, revalidate: 60, expire: 3600 })
 
   return await drupal.getResourceCollection<DrupalNode[]>(
     "node--article",

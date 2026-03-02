@@ -21,6 +21,14 @@ async function handler(request: NextRequest) {
     path && revalidatePath(path)
     tags?.split(",").forEach((tag) => revalidateTag(tag, "max"))
 
+    // Clear homepage route cache when article tags are invalidated.
+    // Needed because cacheTag() values are not passed to the custom
+    // use-cache handler's SET method (known Next.js bug), so tag-based
+    // invalidation alone can't expire the use-cache entry.
+    if (tags?.includes("node_list:article") || tags?.includes("node--article")) {
+      revalidatePath("/")
+    }
+
     return new Response("Revalidated.")
   } catch (error) {
     return new Response((error as Error).message, { status: 500 })

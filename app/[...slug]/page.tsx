@@ -6,9 +6,9 @@ import { drupal } from "@/lib/drupal"
 import type { Metadata, ResolvingMetadata } from "next"
 import type { DrupalNode, JsonApiParams } from "next-drupal"
 
-async function getNode(slug: string[]) {
+async function getNode(slug: string[]): Promise<DrupalNode | null> {
   "use cache"
-  cacheLife("max")
+  cacheLife({ stale: 60, revalidate: 60, expire: 3600 })
 
   const path = `/${slug.join("/")}`
 
@@ -17,7 +17,7 @@ async function getNode(slug: string[]) {
   const translatedPath = await drupal.translatePath(path)
 
   if (!translatedPath) {
-    throw new Error("Resource not found", { cause: "NotFound" })
+    return null
   }
 
   const type = translatedPath.jsonapi?.resourceName!
@@ -38,12 +38,7 @@ async function getNode(slug: string[]) {
   })
 
   if (!resource) {
-    throw new Error(
-      `Failed to fetch resource: ${translatedPath?.jsonapi?.individual}`,
-      {
-        cause: "DrupalError",
-      }
-    )
+    return null
   }
 
   return resource
@@ -65,11 +60,9 @@ export async function generateMetadata(
 
   const { slug } = params
 
-  let node
-  try {
-    node = await getNode(slug)
-  } catch (e) {
-    // If we fail to fetch the node, don't return any metadata.
+  const node = await getNode(slug)
+
+  if (!node) {
     return {}
   }
 
@@ -111,16 +104,9 @@ export default async function NodePage(props: NodePageProps) {
 
   const { slug } = params
 
-  let node
-  try {
-    node = await getNode(slug)
-  } catch (error) {
-    // If getNode throws an error, tell Next.js the path is 404.
-    notFound()
-  }
+  const node = await getNode(slug)
 
-  // If the resource is not published, return a 404.
-  if (node?.status === false) {
+  if (!node || node.status === false) {
     notFound()
   }
 
