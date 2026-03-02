@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { unstable_cache } from "next/cache"
+import { cacheTag, cacheLife } from "next/cache"
 import { Article } from "@/components/drupal/Article"
 import { BasicPage } from "@/components/drupal/BasicPage"
 import { drupal } from "@/lib/drupal"
@@ -7,11 +7,13 @@ import type { Metadata, ResolvingMetadata } from "next"
 import type { DrupalNode, JsonApiParams } from "next-drupal"
 
 async function getNode(slug: string[]) {
+  "use cache"
+  cacheLife("max")
+
   const path = `/${slug.join("/")}`
 
   const params: JsonApiParams = {}
 
-  // Translating the path also allows us to discover the entity type.
   const translatedPath = await drupal.translatePath(path)
 
   if (!translatedPath) {
@@ -20,38 +22,31 @@ async function getNode(slug: string[]) {
 
   const type = translatedPath.jsonapi?.resourceName!
   const uuid = translatedPath.entity.uuid
-  const cacheTag = `${translatedPath.entity.type}:${translatedPath.entity.id}`
+
+  cacheTag(
+    `${translatedPath.entity.type}:${translatedPath.entity.id}`,
+    type,
+    `node:${uuid}`
+  )
 
   if (type === "node--article") {
     params.include = "field_image,uid"
   }
 
-  // Use unstable_cache to cache the resource with tags for granular revalidation
-  const getCachedResource = unstable_cache(
-    async () => {
-      const resource = await drupal.getResource<DrupalNode>(type, uuid, {
-        params,
-      })
+  const resource = await drupal.getResource<DrupalNode>(type, uuid, {
+    params,
+  })
 
-      if (!resource) {
-        throw new Error(
-          `Failed to fetch resource: ${translatedPath?.jsonapi?.individual}`,
-          {
-            cause: "DrupalError",
-          }
-        )
+  if (!resource) {
+    throw new Error(
+      `Failed to fetch resource: ${translatedPath?.jsonapi?.individual}`,
+      {
+        cause: "DrupalError",
       }
+    )
+  }
 
-      return resource
-    },
-    [`node-${uuid}`],
-    {
-      tags: [cacheTag, type, `node:${uuid}`],
-      revalidate: 60,
-    }
-  )
-
-  return getCachedResource()
+  return resource
 }
 
 type NodePageParams = {
@@ -84,8 +79,6 @@ export async function generateMetadata(
 }
 
 const RESOURCE_TYPES = ["node--page", "node--article"]
-
-export const revalidate = 60
 
 export async function generateStaticParams(): Promise<NodePageParams[]> {
   const resources = await drupal.getResourceCollectionPathSegments(

@@ -16,7 +16,12 @@
       "Bash(git log:*)",
       "Bash(git show:*)",
       "mcp__plugin_claude-mem_mem-search__search",
-      "mcp__plugin_claude-mem_mem-search__get_observation"
+      "mcp__plugin_claude-mem_mem-search__get_observation",
+      "Bash(grep:*)",
+      "Bash(source:*)",
+      "Bash(curl:*)",
+      "Bash(node -e:*)",
+      "Bash(node --input-type=module -e:*)"
     ]
   }
 }

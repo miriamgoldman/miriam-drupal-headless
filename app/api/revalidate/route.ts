@@ -19,12 +19,7 @@ async function handler(request: NextRequest) {
 
   try {
     path && revalidatePath(path)
-    tags?.split(",").forEach((tag) => revalidateTag(tag, 'max'))
-
-    // If article tags are revalidated, also clear the homepage route cache
-    if (tags?.includes("node_list:article") || tags?.includes("node--article")) {
-      revalidatePath("/")
-    }
+    tags?.split(",").forEach((tag) => revalidateTag(tag, "max"))
 
     return new Response("Revalidated.")
   } catch (error) {
@@ -32,4 +27,5 @@ async function handler(request: NextRequest) {
   }
 }
 
-export { handler as GET, handler as POST }
+export const GET = handler
+export const POST = handler

@@ -8,6 +8,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   reactStrictMode: true,
 
+  cacheComponents: true,
+
   // Traditional cache handler (ISR, routes, fetch cache)
   cacheHandler: path.resolve(__dirname, "./cache-handler.mjs"),
 
@@ -16,7 +18,9 @@ const nextConfig = {
     default: path.resolve(__dirname, "./use-cache-handler.mjs"),
   },
 
-  cacheMaxMemorySize: 0, // Disable in-memory caching to use custom handler
+  cacheMaxMemorySize: 0,
+
+  transpilePackages: ['@pantheon-systems/nextjs-cache-handler'],
 
   images: {
     remotePatterns: process.env.NEXT_IMAGE_DOMAIN ? [

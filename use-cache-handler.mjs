@@ -1,8 +1,18 @@
 // use-cache-handler.mjs
-import { createUseCacheHandler } from '@pantheon-systems/nextjs-cache-handler/use-cache';
+import { createUseCacheHandler } from '@pantheon-systems/nextjs-cache-handler';
 
-const UseCacheHandler = createUseCacheHandler({
-  type: 'auto', // Auto-detect: GCS if CACHE_BUCKET exists, else file-based
+globalThis.__pantheonSurrogateKeyTags = globalThis.__pantheonSurrogateKeyTags || [];
+
+const UseCacheHandlerClass = createUseCacheHandler({
+  type: 'auto',
 });
 
-export default UseCacheHandler;
+const handler = new UseCacheHandlerClass();
+
+export default {
+  get: handler.get.bind(handler),
+  set: handler.set.bind(handler),
+  refreshTags: handler.refreshTags.bind(handler),
+  getExpiration: handler.getExpiration.bind(handler),
+  updateTags: handler.updateTags.bind(handler),
+};
