@@ -25,6 +25,7 @@ async function getNode(slug: string[]) {
 
   const resource = await drupal.getResource<DrupalNode>(type, uuid, {
     params,
+    next: { tags: [type] },
   })
 
   if (!resource) {

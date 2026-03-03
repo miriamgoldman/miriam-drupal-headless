@@ -19,6 +19,7 @@ export default async function Home() {
         include: "field_image,uid",
         sort: "-created",
       },
+      next: { tags: ["node_list:article"] },
     }
   )
 
