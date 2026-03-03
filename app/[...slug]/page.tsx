@@ -12,36 +12,40 @@ async function getNode(slug: string[]): Promise<DrupalNode | null> {
 
   const path = `/${slug.join("/")}`
 
-  const params: JsonApiParams = {}
+  try {
+    const params: JsonApiParams = {}
 
-  const translatedPath = await drupal.translatePath(path)
+    const translatedPath = await drupal.translatePath(path)
 
-  if (!translatedPath) {
+    if (!translatedPath) {
+      return null
+    }
+
+    const type = translatedPath.jsonapi?.resourceName!
+    const uuid = translatedPath.entity.uuid
+
+    cacheTag(
+      `${translatedPath.entity.type}:${translatedPath.entity.id}`,
+      type,
+      `node:${uuid}`
+    )
+
+    if (type === "node--article") {
+      params.include = "field_image,uid"
+    }
+
+    const resource = await drupal.getResource<DrupalNode>(type, uuid, {
+      params,
+    })
+
+    if (!resource) {
+      return null
+    }
+
+    return resource
+  } catch {
     return null
   }
-
-  const type = translatedPath.jsonapi?.resourceName!
-  const uuid = translatedPath.entity.uuid
-
-  cacheTag(
-    `${translatedPath.entity.type}:${translatedPath.entity.id}`,
-    type,
-    `node:${uuid}`
-  )
-
-  if (type === "node--article") {
-    params.include = "field_image,uid"
-  }
-
-  const resource = await drupal.getResource<DrupalNode>(type, uuid, {
-    params,
-  })
-
-  if (!resource) {
-    return null
-  }
-
-  return resource
 }
 
 type NodePageParams = {
