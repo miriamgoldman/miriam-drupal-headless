@@ -32,6 +32,17 @@ export function ArticleTeaser({ node, ...props }: ArticleTeaserProps) {
           />
         </figure>
       )}
+      {node.body?.summary && node.body.summary.trim() !== "" ? (
+        <div
+          dangerouslySetInnerHTML={{ __html: node.body.summary }}
+          className="my-4 prose prose-lg"
+        />
+      ) : node.body?.processed ? (
+        <div
+          dangerouslySetInnerHTML={{ __html: node.body.processed.substring(0, 300) + "..." }}
+          className="my-4 prose prose-lg"
+        />
+      ) : null}
       <Link
         href={node.path.alias}
         className="inline-flex items-center px-6 py-2 border border-gray-600 rounded-full hover:bg-gray-100"
