@@ -21,7 +21,8 @@
       "Bash(source:*)",
       "Bash(curl:*)",
       "Bash(node -e:*)",
-      "Bash(node --input-type=module -e:*)"
+      "Bash(node --input-type=module -e:*)",
+      "Bash(xargs -I{} sh -c 'echo \"\"=== {} ===\"\" && node -e \"\"console.log\\(require\\(\\\\\"\"{}\\\\\"\"\\).version\\)\"\"')"
     ]
   }
 }

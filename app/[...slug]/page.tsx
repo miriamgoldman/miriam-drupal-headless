@@ -36,6 +36,13 @@ async function getNode(slug: string[]): Promise<DrupalNode | null> {
 
     const resource = await drupal.getResource<DrupalNode>(type, uuid, {
       params,
+      next: {
+        tags: [
+          `${translatedPath.entity.type}:${translatedPath.entity.id}`,
+          type,
+          `node:${uuid}`,
+        ],
+      },
     })
 
     if (!resource) {

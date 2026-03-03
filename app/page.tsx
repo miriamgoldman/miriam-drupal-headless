@@ -21,6 +21,7 @@ async function getArticles() {
         sort: "-created",
         include: "field_image,uid",
       },
+      next: { tags: ["node_list:article", "node--article"] },
     }
   )
 }
