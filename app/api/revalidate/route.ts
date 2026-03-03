@@ -12,6 +12,8 @@ async function handler(request: NextRequest) {
     return new Response("Invalid secret.", { status: 401 })
   }
 
+  console.log("[revalidate]", { path, tags })
+
   // Either tags or path must be provided.
   if (!path && !tags) {
     return new Response("Missing path or tags.", { status: 400 })
