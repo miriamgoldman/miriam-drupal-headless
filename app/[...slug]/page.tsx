@@ -18,6 +18,7 @@ async function getNode(slug: string[]) {
 
   const type = translatedPath.jsonapi?.resourceName!
   const uuid = translatedPath.entity.uuid
+  const entityId = translatedPath.entity.id
 
   if (type === "node--article") {
     params.include = "field_image,uid"
@@ -25,6 +26,7 @@ async function getNode(slug: string[]) {
 
   const resource = await drupal.getResource<DrupalNode>(type, uuid, {
     params,
+    next: { revalidate: 60, tags: [`node:${entityId}`, type] },
   })
 
   if (!resource) {
