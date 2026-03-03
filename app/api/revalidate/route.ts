@@ -19,7 +19,7 @@ async function handler(request: NextRequest) {
 
   try {
     path && revalidatePath(path)
-    tags?.split(",").forEach((tag) => revalidateTag(tag, "max"))
+    tags?.split(",").forEach((tag) => revalidateTag(tag, "default"))
 
     return new Response("Revalidated.")
   } catch (error) {
@@ -27,5 +27,4 @@ async function handler(request: NextRequest) {
   }
 }
 
-export const GET = handler
-export const POST = handler
+export { handler as GET, handler as POST }

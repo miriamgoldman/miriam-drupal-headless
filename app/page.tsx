@@ -1,4 +1,3 @@
-import { cacheTag, cacheLife } from "next/cache"
 import { ArticleTeaser } from "@/components/drupal/ArticleTeaser"
 import { drupal } from "@/lib/drupal"
 import type { Metadata } from "next"
@@ -8,26 +7,20 @@ export const metadata: Metadata = {
   description: "A Next.js site powered by a Drupal backend.",
 }
 
-async function getArticles() {
-  "use cache"
-  cacheTag("node_list:article", "node--article")
-  cacheLife({ stale: 60, revalidate: 60, expire: 3600 })
+export const revalidate = 60
 
-  return await drupal.getResourceCollection<DrupalNode[]>(
+export default async function Home() {
+  const nodes = await drupal.getResourceCollection<DrupalNode[]>(
     "node--article",
     {
       params: {
         "filter[status]": 1,
-        sort: "-created",
+        "fields[node--article]": "title,path,field_image,uid,created",
         include: "field_image,uid",
+        sort: "-created",
       },
-      next: { tags: ["node_list:article", "node--article"] },
     }
   )
-}
-
-export default async function Home() {
-  const nodes = await getArticles()
 
   return (
     <>

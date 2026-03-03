@@ -1,58 +1,42 @@
 import { notFound } from "next/navigation"
-import { cacheTag, cacheLife } from "next/cache"
 import { Article } from "@/components/drupal/Article"
 import { BasicPage } from "@/components/drupal/BasicPage"
 import { drupal } from "@/lib/drupal"
 import type { Metadata, ResolvingMetadata } from "next"
 import type { DrupalNode, JsonApiParams } from "next-drupal"
 
-async function getNode(slug: string[]): Promise<DrupalNode | null> {
-  "use cache"
-  cacheLife({ stale: 60, revalidate: 60, expire: 3600 })
-
+async function getNode(slug: string[]) {
   const path = `/${slug.join("/")}`
 
-  try {
-    const params: JsonApiParams = {}
+  const params: JsonApiParams = {}
 
-    const translatedPath = await drupal.translatePath(path)
+  const translatedPath = await drupal.translatePath(path)
 
-    if (!translatedPath) {
-      return null
-    }
-
-    const type = translatedPath.jsonapi?.resourceName!
-    const uuid = translatedPath.entity.uuid
-
-    cacheTag(
-      `${translatedPath.entity.type}:${translatedPath.entity.id}`,
-      type,
-      `node:${uuid}`
-    )
-
-    if (type === "node--article") {
-      params.include = "field_image,uid"
-    }
-
-    const resource = await drupal.getResource<DrupalNode>(type, uuid, {
-      params,
-      next: {
-        tags: [
-          `${translatedPath.entity.type}:${translatedPath.entity.id}`,
-          type,
-          `node:${uuid}`,
-        ],
-      },
-    })
-
-    if (!resource) {
-      return null
-    }
-
-    return resource
-  } catch {
-    return null
+  if (!translatedPath) {
+    throw new Error("Resource not found", { cause: "NotFound" })
   }
+
+  const type = translatedPath.jsonapi?.resourceName!
+  const uuid = translatedPath.entity.uuid
+
+  if (type === "node--article") {
+    params.include = "field_image,uid"
+  }
+
+  const resource = await drupal.getResource<DrupalNode>(type, uuid, {
+    params,
+  })
+
+  if (!resource) {
+    throw new Error(
+      `Failed to fetch resource: ${translatedPath?.jsonapi?.individual}`,
+      {
+        cause: "DrupalError",
+      }
+    )
+  }
+
+  return resource
 }
 
 type NodePageParams = {
@@ -71,9 +55,10 @@ export async function generateMetadata(
 
   const { slug } = params
 
-  const node = await getNode(slug)
-
-  if (!node) {
+  let node
+  try {
+    node = await getNode(slug)
+  } catch (e) {
     return {}
   }
 
@@ -84,26 +69,15 @@ export async function generateMetadata(
 
 const RESOURCE_TYPES = ["node--page", "node--article"]
 
+export const revalidate = 60
+
 export async function generateStaticParams(): Promise<NodePageParams[]> {
   const resources = await drupal.getResourceCollectionPathSegments(
     RESOURCE_TYPES,
-    {
-      // The pathPrefix will be removed from the returned path segments array.
-      // pathPrefix: "/blog",
-      // The list of locales to return.
-      // locales: ["en", "es"],
-      // The default locale.
-      // defaultLocale: "en",
-    }
+    {}
   )
 
   return resources.map((resource) => {
-    // resources is an array containing objects like: {
-    //   path: "/blog/some-category/a-blog-post",
-    //   type: "node--article",
-    //   locale: "en", // or `undefined` if no `locales` requested.
-    //   segments: ["blog", "some-category", "a-blog-post"],
-    // }
     return {
       slug: resource.segments,
     }
@@ -115,9 +89,14 @@ export default async function NodePage(props: NodePageProps) {
 
   const { slug } = params
 
-  const node = await getNode(slug)
+  let node
+  try {
+    node = await getNode(slug)
+  } catch (error) {
+    notFound()
+  }
 
-  if (!node || node.status === false) {
+  if (node?.status === false) {
     notFound()
   }
 
