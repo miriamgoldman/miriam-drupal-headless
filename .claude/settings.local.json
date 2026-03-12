@@ -24,7 +24,8 @@
       "Bash(node --input-type=module -e:*)",
       "Bash(xargs -I{} sh -c 'echo \"\"=== {} ===\"\" && node -e \"\"console.log\\(require\\(\\\\\"\"{}\\\\\"\"\\).version\\)\"\"')",
       "Bash(git ls-tree:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(terminus drush miriam-drupal.live -- ev:*)"
     ]
   }
 }
