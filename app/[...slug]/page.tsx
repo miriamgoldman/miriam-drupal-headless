@@ -1,3 +1,4 @@
+import { cacheTag, cacheLife } from "next/cache"
 import { notFound } from "next/navigation"
 import { Article } from "@/components/drupal/Article"
 import { BasicPage } from "@/components/drupal/BasicPage"
@@ -6,19 +7,23 @@ import type { Metadata, ResolvingMetadata } from "next"
 import type { DrupalNode, JsonApiParams } from "next-drupal"
 
 async function getNode(slug: string[]) {
-  const path = `/${slug.join("/")}`
+  "use cache"
 
+  const path = `/${slug.join("/")}`
   const params: JsonApiParams = {}
 
   const translatedPath = await drupal.translatePath(path)
 
   if (!translatedPath) {
-    throw new Error("Resource not found", { cause: "NotFound" })
+    return null
   }
 
   const type = translatedPath.jsonapi?.resourceName!
   const uuid = translatedPath.entity.uuid
   const entityId = translatedPath.entity.id
+
+  cacheTag(`node:${entityId}`, type)
+  cacheLife({ stale: Infinity, revalidate: Infinity, expire: Infinity })
 
   if (type === "node--article") {
     params.include = "field_image,uid"
@@ -26,19 +31,9 @@ async function getNode(slug: string[]) {
 
   const resource = await drupal.getResource<DrupalNode>(type, uuid, {
     params,
-    next: { revalidate: 60, tags: [`node:${entityId}`, type] },
   })
 
-  if (!resource) {
-    throw new Error(
-      `Failed to fetch resource: ${translatedPath?.jsonapi?.individual}`,
-      {
-        cause: "DrupalError",
-      }
-    )
-  }
-
-  return resource
+  return resource || null
 }
 
 type NodePageParams = {
@@ -54,15 +49,10 @@ export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const params = await props.params
-
   const { slug } = params
 
-  let node
-  try {
-    node = await getNode(slug)
-  } catch (e) {
-    return {}
-  }
+  const node = await getNode(slug)
+  if (!node) return {}
 
   return {
     title: node.title,
@@ -71,34 +61,31 @@ export async function generateMetadata(
 
 const RESOURCE_TYPES = ["node--page", "node--article"]
 
-export const revalidate = 60
-
 export async function generateStaticParams(): Promise<NodePageParams[]> {
-  const resources = await drupal.getResourceCollectionPathSegments(
-    RESOURCE_TYPES,
-    {}
-  )
+  try {
+    const resources = await drupal.getResourceCollectionPathSegments(
+      RESOURCE_TYPES,
+      {}
+    )
 
-  return resources.map((resource) => {
-    return {
-      slug: resource.segments,
-    }
-  })
+    return resources.map((resource) => {
+      return {
+        slug: resource.segments,
+      }
+    })
+  } catch (error) {
+    console.error("Failed to fetch static params:", error)
+    return []
+  }
 }
 
 export default async function NodePage(props: NodePageProps) {
   const params = await props.params
-
   const { slug } = params
 
-  let node
-  try {
-    node = await getNode(slug)
-  } catch (error) {
-    notFound()
-  }
+  const node = await getNode(slug)
 
-  if (node?.status === false) {
+  if (!node || node.status === false) {
     notFound()
   }
 

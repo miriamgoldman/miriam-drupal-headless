@@ -43,6 +43,8 @@ Install and configure the [Next.js module for Drupal](https://www.drupal.org/pro
 3. Set the revalidation URL to `https://YOUR-NEXTJS-SITE/api/revalidate`
 4. Set a revalidation secret (must match `DRUPAL_REVALIDATE_SECRET` env var on the Next.js side)
 
+It is highly suggested that the [Pantheon Advanced Page Cache](https://www.drupal.org/project/pantheon_advanced_page_cache) be installed as well.
+
 ### What Drupal Sends
 
 When content is saved, the `next` module sends a webhook:
@@ -60,7 +62,11 @@ For accessing unpublished content or restricted fields, configure a consumer at 
 
 ## Next.js Setup
 
+This assumes you have set up a NextJS site on Pantheon, using either Terminus or via the site dashboard. Instructions can be found at the [Pantheon Documentation](https://docs.pantheon.io/nextjs/hello-world-tutorial#site-creation) section for NextJS.
+
 ### From Scratch
+
+Install the Next+Drupal starter package. Note - by default it will install with Next 15. This starter package/repo has been upgraded to Next 16 already.
 
 ```bash
 npx create-next-app -e https://github.com/chapter-three/next-drupal-basic-starter
@@ -195,7 +201,9 @@ async function handler(request: NextRequest) {
 export { handler as GET, handler as POST }
 ```
 
-## Environment Variables
+## Environment Variables 
+
+The following environment variables need to be set on the NextJS site, both in `.env.local` as well as via Pantheon's Terminus Secrets. This can be done via the Dashboard, or through the use of the [Terminus Secrets Manager Plugin](https://github.com/pantheon-systems/terminus-secrets-manager-plugin).
 
 ```bash
 # Required
@@ -209,10 +217,6 @@ DRUPAL_CLIENT_SECRET=from /admin/config/services/consumer
 # Required for on-demand revalidation
 DRUPAL_REVALIDATE_SECRET=from /admin/config/services/next
 
-# Pantheon cache handler (set automatically on Pantheon infrastructure)
-# CACHE_BUCKET=your-gcs-bucket
-# OUTBOUND_PROXY_ENDPOINT=https://your-edge-proxy
-# CACHE_DEBUG=true
 ```
 
 `CACHE_BUCKET` and `OUTBOUND_PROXY_ENDPOINT` are set automatically on Pantheon infrastructure. `CACHE_DEBUG=true` enables verbose cache handler logging.
@@ -378,6 +382,8 @@ Rename to `.cjs` because `"type": "module"` in package.json makes `.js` files ES
 - Tailwind, PostCSS, and TypeScript configs are functionally unchanged
 
 ## Verifying Cache Behavior
+
+Example log entries are below.
 
 ### Build output
 

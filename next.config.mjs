@@ -6,7 +6,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  cacheComponents: true,
   cacheHandler: path.resolve(__dirname, "./cache-handler.mjs"),
+  cacheHandlers: {
+    remote: path.resolve(__dirname, "./cacheHandlers/remote-handler.mjs"),
+  },
   cacheMaxMemorySize: 0,
   images: {
     remotePatterns: process.env.NEXT_IMAGE_DOMAIN ? [
